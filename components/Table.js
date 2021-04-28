@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo } from "react";
-import { usePagination, useTable } from "react-table";
+import { usePagination, useSortBy, useTable } from "react-table";
 
 export function Table({
   columns,
@@ -11,7 +11,6 @@ export function Table({
   setControlledPageSize,
   controlledPageIndex,
   setControlledPage,
-  controlledSortBy,
   setControlledSortBy,
 }) {
   const {
@@ -25,12 +24,13 @@ export function Table({
     pageOptions,
     pageCount,
     // Get the state from the instance
-    state: { pageIndex, pageSize },
+    state: { pageIndex, pageSize, sortBy },
   } = useTable(
     {
       columns,
       data,
       initialState: { pageIndex: 0 }, // Pass our hoisted table state
+      manualSortBy: true,
       manualPagination: true, // Tell the usePagination
       // hook that we'll handle our own data fetching
       // This means we'll also have to provide our own
@@ -47,6 +47,7 @@ export function Table({
         );
       },
     },
+    useSortBy,
     usePagination
   );
 
@@ -58,6 +59,9 @@ export function Table({
     setControlledPageSize(pageSize);
   }, [setControlledPageSize, pageSize]);
 
+  useEffect(() => {
+    setControlledSortBy(sortBy)
+  }, [sortBy])
   const gotoPage = useCallback((page) => {
     setControlledPage(page);
   }, []);
@@ -100,9 +104,9 @@ export function Table({
           {headerGroups.map((headerGroup) => (
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()}>
+                <th {...column.getHeaderProps(column.sortable && column.getSortByToggleProps())}>
                   {column.render("Header")}
-                  {column.sortable ? (
+                  {/* {column.sortable ? (
                     <div>
                       <button
                         onClick={() => {
@@ -115,7 +119,7 @@ export function Table({
                         sort
                       </button>
                     </div>
-                  ) : null}
+                  ) : null} */}
                   <span>
                     {column.isSorted
                       ? column.isSortedDesc
